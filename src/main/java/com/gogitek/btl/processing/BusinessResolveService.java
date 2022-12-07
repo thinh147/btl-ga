@@ -4,6 +4,7 @@ import akka.actor.AbstractActor;
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import akka.actor.Props;
+import com.gogitek.btl.TeamEnum;
 import com.gogitek.btl.controller.ResultApi;
 import com.gogitek.btl.ga.*;
 import com.gogitek.btl.model.Season;
@@ -163,12 +164,9 @@ public class BusinessResolveService extends AbstractActor {
 
     public static Season initSeason() {
         Season season = new Season();
-        season.addTeam(1, "Manchester United");
-        season.addTeam(2, "Manchester City");
-        season.addTeam(3, "Chelsea");
-        season.addTeam(4, "Liverpool");
-        season.addTeam(5, "Tottenham");
-        season.addTeam(6, "Arsenal");
+        for(TeamEnum e : TeamEnum.values()){
+            season.addTeam(e.ordinal()+1, e.name());
+        }
         return season;
 
     }

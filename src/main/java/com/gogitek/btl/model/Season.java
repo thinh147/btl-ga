@@ -1,5 +1,6 @@
 package com.gogitek.btl.model;
 
+import com.gogitek.btl.TeamEnum;
 import com.gogitek.btl.ga.Genotype;
 
 import java.util.*;
@@ -10,7 +11,7 @@ import java.util.stream.Stream;
 public class Season {
 
     private final HashMap<Integer, Team> teams;
-    private List<MatchSchedule> seasonSchedule;
+    private final List<MatchSchedule> seasonSchedule;
 
 
     public Season() {
@@ -40,13 +41,30 @@ public class Season {
                 int teamA = chromsoPos++;
                 int teamB = chromsoPos++;
                 Match match = new Match(chromosome[teamA], chromosome[teamB]);
+                if(checkIsDerby(teamA, teamB)){
+                    match.setDerby(true);
+                }
                 matchSchedule.add(match);
-
             }
             this.seasonSchedule.add(matchSchedule);
 
         }
         //System.out.println(this.seasonSchedule);
+    }
+
+    private boolean checkIsDerby(int teamA, int teamB){
+        Team teamAName = teams.get(teamA);
+        Team teamBName = teams.get(teamB);
+
+        if(teamAName.getTeamName().equals(TeamEnum.ARSENAL.name()) && teamBName.getTeamName().equals(TeamEnum.CHELSEA.name())){
+            return true;
+        }
+
+        if(teamAName.getTeamName().equals(TeamEnum.MAN_UTD.name()) && teamBName.getTeamName().equals(TeamEnum.MANCHESTER_CITY.name())){
+            return true;
+        }
+
+        return false;
     }
 
 
@@ -70,11 +88,13 @@ public class Season {
         int numberOfTimeSameMatchBeingPlayed;
         int teamsPlayingMultipleMatchesSameDay = 0;
         int teamsPlayingAgainstEachOther = 0;
+        int notSoftConstraints = 0;
         //Get all matches for a particular schedule
         List<Match> allMatches = seasonSchedule
                 .stream()
                 .flatMap(x -> x.getMatches().stream())
                 .collect(Collectors.toList());
+
         // Calculate number of times same match being played
         Map<Match, Long> matchesMap = allMatches.stream()
                 .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));

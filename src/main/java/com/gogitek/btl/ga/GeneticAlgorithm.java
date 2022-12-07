@@ -43,8 +43,6 @@ public class GeneticAlgorithm {
         population.setPopulationFitness(populationFitness);
         //sort the population based on fitness
         population.sortBasedOnFitness();
-
-
     }
 
     public boolean isTerminationConditionMet(Population population) {
@@ -66,22 +64,6 @@ public class GeneticAlgorithm {
         // Get genotypes
         return genotypes.get(population.populationSize() - 1);
     }
-//    public Genotype selectParent(Population population) {
-//        // Create tournament
-//        Population tournament = new Population();
-//        int tournamentSize = 5;
-//        // Add random individuals to the tournament
-//        population.shuffle();
-//        for (int i = 0; i < tournamentSize; i++) {
-//            Genotype tournamentIndividual = population.getFittest(i);
-//            tournament.setIndividual(i, tournamentIndividual);
-//        }
-//
-//        tournament.sortBasedOnFitness();
-//        // Return the best
-//        return tournament.getFittest(0);
-//    }
-
 
     public Population crossoverPopulation(Population population) {
         // Create new population

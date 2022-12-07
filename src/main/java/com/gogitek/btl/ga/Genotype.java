@@ -15,10 +15,9 @@ import java.util.stream.Stream;
 
 public class Genotype {
 
-    private int[] chromosome;
+    private final int[] chromosome;
     private double fitness = -1;
     private Phenotype phenotype;
-
 
     public Genotype(int[] chromosome) {
         this.chromosome = chromosome;
@@ -29,14 +28,13 @@ public class Genotype {
         int numberOfTeams = season.getNumberOfTeams();
         int matchesPlayedByEachTeam = (numberOfTeams - 1) * 2;
 
-        /* Ex: numberOfTeams = 4
+        /* Ex: Số đội là 6
 
-         * Each team plays each other twice (Home and Away)
-         * Every team plays 6 matches.
-         * Chromosome Length is the number of matches played by each team
-         * In this case - 4 * 6 = 24
-         *
+         * Mỗi đội gặp nhau 2 trận lượt đi và về
+         * Mỗi đội chơi 6 trận
+         * Độ dài nhiễm sắc thể chính là số ngày phải chơi của tất cả các team
          * */
+
         int chromosomeLength = matchesPlayedByEachTeam * numberOfTeams;
         this.chromosome = new int[chromosomeLength];
         int chromosomeIndex = 0;
@@ -121,7 +119,6 @@ public class Genotype {
                 int teamB = chromsoPos++;
                 Match match = new Match(chromosome[teamA], chromosome[teamB]);
                 matchSchedule.add(match);
-
             }
             matchSchedules.add(matchSchedule);
 
@@ -144,7 +141,8 @@ public class Genotype {
     * Calculate Clashes:
     * 1) Calculate number of times same match being played
     * 2) Calculate the number of time a team is playing multiple matches on the same day.
-    * 3) Sum 1) and 2) and return back.
+    * 3) soft constraint if yes -> 0 if NO -> 1
+    * 4) Sum 1) and 2) and 3) and return back.
     *
     * */
 
@@ -163,9 +161,10 @@ public class Genotype {
         // Calculate number of times same match being played
         Map<Match, Long> matchesMap = allMatches.stream()
                 .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
+
         numberOfTimeSameMatchBeingPlayed = matchesMap.values().stream()
                 .filter(x -> x.intValue() > 1)
-                .mapToInt(x -> x.intValue())
+                .mapToInt(Long::intValue)
                 .sum();
 
 

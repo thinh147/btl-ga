@@ -5,12 +5,13 @@ import java.util.Arrays;
 public class Match {
 
     private final Integer[] match;
+    private Boolean isDerby;
 
     public Match(int homeTeam, int awayTeam) {
         this.match = new Integer[2];
         this.match[0] = homeTeam;
         this.match[1] = awayTeam;
-
+        this.isDerby = false;
     }
 
 
@@ -18,6 +19,13 @@ public class Match {
         return match;
     }
 
+    public Boolean getDerby() {
+        return isDerby;
+    }
+
+    public void setDerby(boolean isDerby){
+        this.isDerby = isDerby;
+    }
 
     @Override
     public boolean equals(Object o) {
