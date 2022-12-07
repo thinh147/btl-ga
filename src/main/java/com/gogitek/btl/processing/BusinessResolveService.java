@@ -5,6 +5,7 @@ import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import akka.actor.Props;
 import com.gogitek.btl.TeamEnum;
+import com.gogitek.btl.controller.ResponseData;
 import com.gogitek.btl.controller.ResultApi;
 import com.gogitek.btl.ga.*;
 import com.gogitek.btl.model.Season;
@@ -20,7 +21,7 @@ public class BusinessResolveService extends AbstractActor {
     private Population currentPopulation;
 
     private final int populationSize;
-    private final GeneticAlgorithm geneticAlgorithm;
+    private final GaUtils gaUtils;
     private int currentGeneration = 1;
 
     private final double mutationRate;
@@ -28,14 +29,14 @@ public class BusinessResolveService extends AbstractActor {
     private final int elitismCount;
     private Season season;
 
-    private static List<ResultApi> resultApi = new ArrayList<>();
+    private static ResponseData responseData = new ResponseData();
 
     public BusinessResolveService(int populationSize, double mutationRate, double crossoverRate, int elitismCount) {
         this.populationSize = populationSize;
         this.mutationRate = mutationRate;
         this.crossoverRate = crossoverRate;
         this.elitismCount = elitismCount;
-        this.geneticAlgorithm = new GeneticAlgorithm(this.populationSize, mutationRate, crossoverRate, elitismCount);
+        this.gaUtils = new GaUtils(this.populationSize, mutationRate, crossoverRate, elitismCount);
     }
 
     static public Props props() {
@@ -61,25 +62,25 @@ public class BusinessResolveService extends AbstractActor {
     public Receive createReceive() {
         return receiveBuilder()
                 .match(Init.class, init -> executeInitLogic())
-                .match(Result.class, result -> resultApi = evaluateResult(result.genotype))
+                .match(Result.class, result -> responseData = evaluateResult(result.genotype))
                 .build();
     }
 
-    public static List<ResultApi> getDataForApi() {
+    public static ResponseData getDataForApi() {
         ActorSystem actorSystem = ActorSystem.create("btl");
         ActorRef masterActor = actorSystem.actorOf(BusinessResolveService.props());
         masterActor.tell(new BusinessResolveService.Init(), null);
-        return resultApi;
+        return responseData;
     }
 
-    public List<ResultApi> evaluateResult(Genotype genotype) {
+    public ResponseData evaluateResult(Genotype genotype) {
         this.currentPopulation.addGenotype(genotype);
-        List<ResultApi> res = new ArrayList<>();
+        ResponseData res = new ResponseData();
         if (this.currentPopulation.populationSize() == this.populationSize) {
             //recalculateFitness();
-            this.currentPopulation = this.geneticAlgorithm.mutatePopulation(this.currentPopulation, this.season);
+            this.currentPopulation = this.gaUtils.mutatePopulation(this.currentPopulation, this.season);
             recalculateFitness(this.currentPopulation);
-            if (!this.geneticAlgorithm.isTerminationConditionMet(this.currentPopulation)) {
+            if (!this.gaUtils.isTerminationConditionMet(this.currentPopulation)) {
                 System.out.println("Generation: " + this.currentGeneration + " fittest " + this.currentPopulation.getFittest().getFitness());
                 Population previousGeneration = new Population(this.currentPopulation);
                 this.currentPopulation.getGenotypes().clear();
@@ -93,10 +94,9 @@ public class BusinessResolveService extends AbstractActor {
 
 
             } else {
-                res = printSolution();
+                res = getResolve();
                 context().stop(getSelf());
                 context().system().terminate();
-
             }
         }
         return res;
@@ -114,7 +114,7 @@ public class BusinessResolveService extends AbstractActor {
     public void executeInitLogic() {
         //Create Initial Population
         this.season = initSeason();
-        Population population = this.geneticAlgorithm.initPopulation(season);
+        Population population = this.gaUtils.initPopulation(season);
         this.currentPopulation = population;
         for (Genotype genotype : population.getGenotypes()) {
             GeneticAlgorithmProcessing.CalculateFitness calculateFitness = new GeneticAlgorithmProcessing.CalculateFitness(genotype, season.getTeams());
@@ -129,7 +129,7 @@ public class BusinessResolveService extends AbstractActor {
     }
 
 
-    public List<ResultApi> printSolution() {
+    public ResponseData getResolve() {
         System.out.println("Found solution in " + this.currentGeneration + " generations");
         System.out.println("Best solution fitness: " + this.currentPopulation.getFittest().getFitness());
         System.out.println("Best solution Genotype: " + this.currentPopulation.getFittest().toString());
@@ -139,6 +139,7 @@ public class BusinessResolveService extends AbstractActor {
         System.out.println("###############################");
         System.out.println();
         List<ResultApi> res = new ArrayList<>();
+        ResponseData data = new ResponseData();
         Genotype fittest = this.currentPopulation.getFittest();
         fittest.createPhenoType(season.getTeams());
         //season.createSeasonSchedule(fittest);
@@ -159,7 +160,9 @@ public class BusinessResolveService extends AbstractActor {
             }
             System.out.println();
         }
-        return res;
+        data.setResponseData(res);
+        data.setGeneration(this.currentGeneration);
+        return data;
     }
 
     public static Season initSeason() {

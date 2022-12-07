@@ -4,7 +4,7 @@ import com.gogitek.btl.model.Season;
 
 import java.util.List;
 
-public class GeneticAlgorithm {
+public class GaUtils {
 
     private final int populationSize;
     private final double mutationRate;
@@ -12,7 +12,7 @@ public class GeneticAlgorithm {
     private final int elitismCount;
 
 
-    public GeneticAlgorithm(int populationSize, double mutationRate, double crossoverRate, int elitismCount) {
+    public GaUtils(int populationSize, double mutationRate, double crossoverRate, int elitismCount) {
         this.populationSize = populationSize;
         this.mutationRate = mutationRate;
         this.crossoverRate = crossoverRate;
@@ -95,7 +95,6 @@ public class GeneticAlgorithm {
         }
         return newPopulation;
     }
-
 
     public Population mutatePopulation(Population population, Season season) {
         population.sortBasedOnFitness();

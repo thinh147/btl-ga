@@ -88,7 +88,6 @@ public class Season {
         int numberOfTimeSameMatchBeingPlayed;
         int teamsPlayingMultipleMatchesSameDay = 0;
         int teamsPlayingAgainstEachOther = 0;
-        int notSoftConstraints = 0;
         //Get all matches for a particular schedule
         List<Match> allMatches = seasonSchedule
                 .stream()
@@ -122,19 +121,16 @@ public class Season {
                 sum = sum / 2;
             }
             teamsPlayingMultipleMatchesSameDay = teamsPlayingMultipleMatchesSameDay + sum;
-//            if (teamsPlayingMultipleMatchesSameDay != 0) {
-//                teamsPlayingMultipleMatchesSameDay = teamsPlayingMultipleMatchesSameDay + teamsPlayingMultipleMatchesSameDay / 2;
-//
-//
-//            }
         }
-//        long teamsPlayingAgainstEachOtherLong = allMatches.stream().filter(x -> x.getMatch()[0] == x.getMatch()[1])
-//                .count();
-//        teamsPlayingAgainstEachOther = (int) teamsPlayingAgainstEachOtherLong;
+
+        Match finalMatch = allMatches.get(allMatches.size()-1);
+
         clashes = numberOfTimeSameMatchBeingPlayed + teamsPlayingMultipleMatchesSameDay + teamsPlayingAgainstEachOther;
+
+        if(!finalMatch.getDerby()){
+            clashes += 1;
+        }
         return clashes;
-
-
     }
 
     public List<MatchSchedule> getSeasonSchedule() {
